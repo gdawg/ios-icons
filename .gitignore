@@ -1,0 +1,10 @@
+*.sublime*
+*tmp*
+*.idea
+old*
+dist
+*.log
+ios-icons
+*.so
+build.log
+*.o
