@@ -1,9 +1,8 @@
 package = "ios-icons"
-version = "1.0-1"
+version = "1.1-1"
 source = {
    url = "git://github.com/gdawg/ios-icons",
-   tag = "v1.0",
-   url = "TBA = release gz"
+   tag = "v1.1",
 }
 description = {
    summary = "Arrange your ios icons through code not with your finger",
