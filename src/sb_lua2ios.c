@@ -10,31 +10,29 @@
 int addPageIconsToPList(lua_State* L, plist_t page);
 void addIconsToGroup(lua_State* L, plist_t group);
 
-plist_t ios_table_to_plist(lua_State* L)
+plist_t 
+ios_table_to_plist(lua_State* L)
 {
-  plist_t iconState, p;
+  plist_t iconState;
   iconState = plist_new_array();
   int i;
 
-  if (lua_type(L, -1) != LUA_TTABLE) {
-    luaL_error(L, "internal error! can't convert %s to icons", 
-                  luaL_typename(L, -1));
-  }
-
   // Iterate dock+pages
+  luaL_checktype(L, -1, LUA_TTABLE);
   int len = lua_rawlen(L, -1);
+
   for (i=1; i< len+1; i++) 
-  {
+  {    
+    plist_t p;
+
     // push page to top of stack
-    lua_rawgeti(L, -1, i);
+    lua_rawgeti(L, -1, i); 
+    luaL_checktype(L, -1, LUA_TTABLE);
 
     // create plist page to match
-    if (lua_istable(L, -1))
-    {
-      p = plist_new_array(); 
-      plist_array_append_item(iconState, p);
-      addPageIconsToPList(L, p);
-    }
+    p = plist_new_array(); 
+    plist_array_append_item(iconState, p);
+    addPageIconsToPList(L, p);
 
     lua_pop(L, 1);
   }
@@ -42,7 +40,8 @@ plist_t ios_table_to_plist(lua_State* L)
   return iconState;
 }
 
-plist_t luaToStoredPListItem(lua_State* L)
+plist_t 
+luaToStoredPListItem(lua_State* L)
 {
   plist_t pageItem;
 
@@ -61,20 +60,28 @@ plist_t luaToStoredPListItem(lua_State* L)
                     lua_tostring(L, -1));
   }
 
+  // "trim " the stored icon a little as a workaround for data failures
+  plist_dict_remove_item(pageItem, "iconModDate");
+  plist_dict_remove_item(pageItem, "bundleVersion");
+  plist_dict_remove_item(pageItem, "bundleIdentifer");
+  plist_dict_remove_item(pageItem, "displayName");
+
   lua_pop(L, 2); // name + id
 
   return pageItem;
 }
 
-int addPageIconsToPList(lua_State* L, plist_t page)
+int 
+addPageIconsToPList(lua_State* L, plist_t page)
 {
-  plist_t pageItem;
   int i;
 
   int len = lua_rawlen(L, -1);
   for (i=1; i< len+1; i++) 
   {
+    plist_t pageItem;
     lua_rawgeti(L, -1, i); 
+
     pageItem = luaToStoredPListItem(L);
 
     lua_getfield(L, -1, kIconsKey);
@@ -91,7 +98,8 @@ int addPageIconsToPList(lua_State* L, plist_t page)
   return 0;
 }
 
-void addIconsToGroup(lua_State* L, plist_t group)
+void 
+addIconsToGroup(lua_State* L, plist_t group)
 {
   plist_t wasteful_format = plist_new_array();
   plist_t children = plist_new_array();

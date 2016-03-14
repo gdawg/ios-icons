@@ -16,7 +16,8 @@
 
 int idevice_errno = 0;
 
-LUALIB_API int ios_connect(lua_State *L)
+LUALIB_API int 
+ios_connect(lua_State *L)
 {
   int rc;
   const char* udid = NULL;
@@ -58,7 +59,8 @@ LUALIB_API int ios_connect(lua_State *L)
   }
 }
 
-LUALIB_API int ios_disconnect(lua_State *L)
+LUALIB_API int 
+ios_disconnect(lua_State *L)
 {
   SBConnection* c = (SBConnection*)luaL_checkudata(L, 1, kSpringboardConnID);
   if (c->sbClient != NULL) { sbservices_client_free(c->sbClient); }
@@ -71,7 +73,8 @@ LUALIB_API int ios_disconnect(lua_State *L)
   return 1;
 }
 
-int conn_tostring(lua_State *L) {
+int 
+conn_tostring(lua_State *L) {
   char* deviceName;
 
   SBConnection* c = (SBConnection*)luaL_checkudata(L, 1, kSpringboardConnID);

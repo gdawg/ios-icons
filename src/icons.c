@@ -14,7 +14,7 @@
 #include "save_load.h"
 #include "icons.h"
 
-static const int kPullRetries = 3;
+static const int kRetries = 32;
 
 // pops (and checks) sb connection from top of stack
 SBConnection* popConnection(lua_State* L)
@@ -24,7 +24,19 @@ SBConnection* popConnection(lua_State* L)
   return c;
 }
 
-int ios_get_icons(lua_State *L)
+static useconds_t
+retry_interval(int attempt)
+{
+  switch (attempt) {
+    case 0: return 64000ull;
+    case 1: return 128000ull;
+    case 2: return 256000ull;
+    default: return 512000ull;
+  }
+}
+
+int 
+ios_get_icons(lua_State *L)
 {
   int rc, i, connIdx;
   plist_t iconState;
@@ -38,7 +50,11 @@ int ios_get_icons(lua_State *L)
     rc = sbservices_get_icon_state(
           c->sbClient, &iconState, 
           kSpringboardInfoVersion);
-    if (i == kPullRetries) { luaL_error(L, "connect error %d", rc); }
+    if (rc != SBSERVICES_E_SUCCESS) { 
+      if (i >= kRetries)
+        luaL_error(L, "error fetching icons: %d", rc); 
+      usleep(retry_interval(i));
+    }
   }
   
   if ( (rc = ios_plist_to_table(L, iconState)) != 1) {
@@ -52,7 +68,8 @@ int ios_get_icons(lua_State *L)
   return rc;
 }
 
-int ios_set_icons(lua_State *L)
+int 
+ios_set_icons(lua_State *L)
 {
   int rc;
   plist_t iconState;
@@ -65,10 +82,16 @@ int ios_set_icons(lua_State *L)
   lua_remove(L, -2); // leaving icons still at top
 
   iconState = ios_table_to_plist(L);
-  rc = sbservices_set_icon_state(c->sbClient, iconState);
 
-  if (rc != SBSERVICES_E_SUCCESS) {
-    luaL_error(L, "%s, code=%d", kSetIconsErr, rc);
+  rc = -1;
+  for (int i=0; rc != SBSERVICES_E_SUCCESS; i++)
+  {
+    rc = sbservices_set_icon_state(c->sbClient, iconState);
+    if (rc != SBSERVICES_E_SUCCESS) { 
+      if (i >= kRetries)
+        luaL_error(L, "error sending icons: %d", rc); 
+      usleep(retry_interval(i));
+    }
   }
 
   lua_pop(L, 1); // conn

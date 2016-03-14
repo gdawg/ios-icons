@@ -189,7 +189,7 @@ mt.__index.new = function()
     local rows,cols = layout.rows,layout.cols
     for i=1,cols do
         if not tbl[i] then tbl[i] = {} end
-        for j=1,5 do
+        for j=1,rows do
             tbl[i][j] = {x=i, y=j}
         end
     end

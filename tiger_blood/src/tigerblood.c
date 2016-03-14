@@ -18,7 +18,11 @@ lua_ext_getc(lua_State* L)
   struct timeval tv;
   int rc;
 
+#if (LUA_VERSION_NUM >= 503)
+  long timeout = luaL_checkinteger(L, -1);
+#else
   long timeout = luaL_checklong(L, -1);
+#endif
   lua_pop(L, 1);
 
   tv.tv_sec = (time_t) timeout / 1000;
