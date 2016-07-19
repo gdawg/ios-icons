@@ -16,6 +16,7 @@ dependencies = {
    "luasocket",
    "busted",
    "chroma",
+   "lpeg",
 }
 -- the magic glue:
 -- - https://github.com/libimobiledevice/libimobiledevice

@@ -27,6 +27,7 @@ prefer_breakdown = {
     { "Frequent", "Infrequent", "Unrestricted Web Access" },
     { "Intense Profanity or Crude Humor", "Intense Sexual Content or Nudity",
       "Mild Profanity or Crude Humor", "Mild Sexual Content and Nudity",
+      "Intense Realistic Violence", "Intense Alcohol, Tobacco, or Drug Use or References",
       "Intense Mature", "Intense Cartoon or Fantasy Violence",
       "Mild Realistic Violence", "Intense Horror",
       "Mild Cartoon or Fantasy Violence",
@@ -60,7 +61,12 @@ function points_for_advisory(adv)
     if not adv or #adv < 1 then return 0 end
     for _,adv_n in ipairs(adv) do
         for _,v in pairs(split(adv_n)) do
-            points = points + points_for_terms[v]
+            local tpoints = points_for_terms[v]
+            if tpoints then 
+                points = points + tpoints
+            else
+                print("unknown category " .. v)
+            end           
         end
     end
     return points
