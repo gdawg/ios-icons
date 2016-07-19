@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -64,47 +67,32 @@ ios_save_icons_plist(lua_State *L)
   return 0;
 }
 
-char*
-fslurp(const char* path)
-{
-  char* data = NULL;
-  uint32_t len = 0;
-  struct stat st;
-  int rc;
-  FILE* fd;
-
-  if (stat(path, &st)) { return NULL; }
-  len = st.st_size;
-
-  fd = fopen(path, "r");
-  if (fd == NULL) { return NULL; }
-
-  data = malloc(sizeof(char*) * (len + 1));
-  if (data == NULL) { return NULL; }
-
-  fread(data, len, 1, fd);
-  fclose(fd);
-  data[len - 1] = '\0';  
-  return data;
-}
-
 int 
 ios_load_icons_plist(lua_State *L)
 {
   plist_t iconState = NULL;
-  char* xml = NULL;
   const char* path;
+  int fd;
+  void *mem;
+  size_t sz;
 
   path = lua_tostring(L, -1);
-  xml = fslurp(path);
-  if (xml == NULL)
-  { 
-    luaL_error(L, "failed to read file: %s", 
-                  strerror(errno));
-  }
 
-  plist_from_xml(xml, strlen(xml), &iconState);
-  free(xml);
+  if ((fd = open(path, O_RDONLY) < 0))
+    luaL_error(L, "open %s failed: %s", path, strerror(errno));
+
+  sz = lseek(fd, 0, SEEK_END);
+  (void)lseek(fd, 0, SEEK_SET);
+
+  mem = mmap(NULL, sz, PROT_READ, MAP_PRIVATE, fd, 0);
+  (void)close(fd);
+
+  if (mem == MAP_FAILED)
+    luaL_error(L, "reading %s failed: %s", path, strerror(errno));
+
+  plist_from_xml((char*)mem, strlen((char*)mem), &iconState);
+
+  (void)munmap(mem, sz);
 
   lua_pop(L, 1);
 

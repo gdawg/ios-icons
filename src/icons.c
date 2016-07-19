@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -38,11 +39,10 @@ retry_interval(int attempt)
 int 
 ios_get_icons(lua_State *L)
 {
-  int rc, i, connIdx;
+  int rc, i;
   plist_t iconState;
 
   SBConnection* c = popConnection(L);
-  connIdx = lua_absindex(L, -1);
   
   rc = -1;
   for (i=0; rc != SBSERVICES_E_SUCCESS; i++)

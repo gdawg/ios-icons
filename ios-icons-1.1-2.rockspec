@@ -1,5 +1,5 @@
 package = "ios-icons"
-version = "1.1-1"
+version = "1.1-2"
 source = {
    url = "git://github.com/gdawg/ios-icons",
    tag = "v1.1",
@@ -11,7 +11,7 @@ description = {
    license = "MIT"
 }
 dependencies = {
-   "lua ~> 5.2",
+   "lua ~> 5.3",
    "luajson",
    "luasocket",
    "busted",
